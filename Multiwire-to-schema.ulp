@@ -1,0 +1,73 @@
+string preamble = "edit .sch\nset Warning.PartHasNoUserDefinableValue 0\nset wire_bend 2\ngrid mm\nedit .s1\nchange layer 91\nchange style continuous\n";
+string postamble = "set Warning.PartHasNoUserDefinableValue 1\nwindow fit\ngrid last\n";
+
+string wires[];
+int nWires;
+
+
+void draw_net(string net, string part1, string pad1, string part2, string pad2) 
+{
+    int instance_count = 0;
+    UL_INSTANCE instance[];
+    UL_PIN pin[];
+    schematic(S) {
+        S.sheets(SH) {
+            SH.instances(I) {
+                string pad;
+                if (I.name != part1 && I.name != part2) 
+                    continue;
+                if (I.name == part1)
+                    pad = pad1;
+                else
+                    pad = pad2;
+                I.gate.symbol.pins(P) {
+                    P.contacts(C) {
+                        printf("#### %s\n", C.name);
+                        if (C.name == pad) {
+                            pin[instance_count] = P;
+                            break;
+                        }
+                    }
+                }
+                instance[instance_count++] = I;
+            }
+            if (instance_count < 2)
+                return;
+        }
+    }
+    printf("## %s:%s->%s:%s\n", 
+           instance[0].part.name, pad1,
+           instance[1].part.name, pad2);
+    
+    printf("net '%s'", net);
+    for (int i = 0; i < instance_count; i++) {
+        printf(" (r %f %f)", u2mm(pin[i].x), u2mm(pin[i].y));
+    }
+    printf("\n");
+}
+
+sort(nWires, wires);
+
+nWires = 
+    fileread(wires, "/Users/pnr/Documents/eagle/BOM-import/PAHKA-ETH2multiwir.NET.txt");
+
+output("/Users/pnr/Documents/eagle/BOM-import/Elli-proto.net.scr") {
+    string prev[];
+
+    printf("%s", preamble);
+    for (int i = 0; i < nWires; i++) {
+        string fields[];
+        int num = strsplit(fields, wires[i], '\t');
+        if (num != 3)
+            continue;
+        if (prev[0] != fields[0]) {
+            /* New net */
+            for (int j = 0; j < 3; j++) {
+                prev[j] = fields[j];
+            }
+            continue;
+        }
+        //printf("# %s:%s -> %s:%s\n", prev[1], prev[2], fields[1], fields[2]);
+        draw_net(prev[0], prev[1], prev[2], fields[1], fields[2]);
+    }
+}

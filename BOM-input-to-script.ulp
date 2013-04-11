@@ -1,0 +1,50 @@
+
+int check_device(string pack) 
+{
+    library(LIB) {
+        LIB.devices(D) {
+            if (D.name == pack) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+string components[];
+int nComponents;
+
+string preamble = "edit .sch\nset Warning.PartHasNoUserDefinableValue 0\nset wire_bend 2\ngrid mm\nedit .s1\n";
+string postamble = "set Warning.PartHasNoUserDefinableValue 1\nwindow fit\ngrid last\n";
+
+
+nComponents = 
+    fileread(components, "/Users/pnr/Documents/eagle/BOM-import/Elli-proto.bom.txt");
+
+output("/Users/pnr/Documents/eagle/BOM-import/Elli-proto.bom.scr") {
+
+    printf("%s", preamble);
+    for (int i = 0; i < nComponents; i++) {
+        if (components[i][0] == '#')
+            continue;
+        string fields[];
+        int num = strsplit(fields, components[i], '\t');
+        if (num != 7)
+            continue;
+
+        if (!check_device(fields[2])) {
+            printf("# Device %s not found\n", fields[2]);
+            continue;
+        }
+        
+        printf("add %s@ell-i '%s' %s r%f (r %f %f)\n",
+               fields[2],         /* Device */
+               fields[0],         /* Reference */
+               "G$1",             /* Pad? */
+               strtod(fields[5]), /* Rotation */
+               strtod(fields[3]), /* X */
+               (420 - strtod(fields[4]) + 210 * strtod(fields[6]))); /* Y, sheet */
+        printf("value '%s' '%s'\n", fields[0], fields[1]);
+    }
+    printf("%s", postamble);
+}

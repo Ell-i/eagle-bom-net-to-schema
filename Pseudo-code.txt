@@ -1,0 +1,20 @@
+Pseudo-code algorithm for reading in schematics to Eagle
+
+For each part
+
+
+Get part<reference,value,size,x,y,rot,sheet,type> from BOM
+Get library_symbol<type,gates,package> from Library
+Get library_package<package,smds> from LIbrary
+
+Output "add part<name>@library 'part<reference>' gate<name> part<rot> (r part<x> port<y>)"
+Output "value 'part<reference>' 'part<value>'"
+
+Compute and store coordinates for the pins
+
+Get net<net,reference,pin> from NET 
+
+For each net
+  Compute the middle point of the net
+  Draw lines from middle point to the pins
+
