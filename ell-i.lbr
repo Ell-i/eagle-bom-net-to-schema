@@ -323,6 +323,49 @@
 <wire x1="0.6" y1="0.4" x2="0.6" y2="-0.4" width="0.127" layer="21"/>
 <wire x1="-0.3" y1="0.4" x2="-0.3" y2="-0.4" width="0.127" layer="21"/>
 </package>
+<package name="HALO-N5">
+<description>&lt;b&gt;E-Ultra (TM) 10/100BASE-TX SOIC-16 Fast Ethernet Magnetic Modules&lt;/b&gt;&lt;p&gt;
+Source: www.haloelectronics.com .. e-ultra.pdf</description>
+<wire x1="6.25" y1="3.45" x2="6.25" y2="-3.45" width="0.2032" layer="21"/>
+<wire x1="-6.25" y1="-3.45" x2="-6.25" y2="3.45" width="0.2032" layer="21"/>
+<wire x1="-6.25" y1="3.45" x2="6.25" y2="3.45" width="0.2032" layer="21"/>
+<wire x1="6.25" y1="-3.45" x2="-6.25" y2="-3.45" width="0.2032" layer="21"/>
+<circle x="-5.08" y="-2.54" radius="0.4065" width="0" layer="21"/>
+<smd name="1" x="-4.445" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="2" x="-3.175" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="3" x="-1.905" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="4" x="-0.635" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="5" x="0.635" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="6" x="1.905" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="7" x="3.175" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="8" x="4.445" y="-4.445" dx="0.6" dy="1.2" layer="1"/>
+<smd name="9" x="4.445" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="10" x="3.175" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="11" x="1.905" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="12" x="0.635" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="13" x="-0.635" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="14" x="-1.905" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="15" x="-3.175" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<smd name="16" x="-4.445" y="4.445" dx="0.6" dy="1.2" layer="1" rot="R180"/>
+<text x="-6.985" y="-3.175" size="1.27" layer="25" rot="R90">&gt;NAME</text>
+<text x="-4.445" y="-0.635" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-4.67" y1="-4.75" x2="-4.22" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="-3.4" y1="-4.75" x2="-2.95" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="-2.13" y1="-4.75" x2="-1.68" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="-0.86" y1="-4.75" x2="-0.41" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="0.41" y1="-4.75" x2="0.86" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="1.68" y1="-4.75" x2="2.13" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="2.95" y1="-4.75" x2="3.4" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="4.22" y1="-4.75" x2="4.67" y2="-3.4" layer="51" rot="R180"/>
+<rectangle x1="4.22" y1="3.4" x2="4.67" y2="4.75" layer="51"/>
+<rectangle x1="2.95" y1="3.4" x2="3.4" y2="4.75" layer="51"/>
+<rectangle x1="1.68" y1="3.4" x2="2.13" y2="4.75" layer="51"/>
+<rectangle x1="0.41" y1="3.4" x2="0.86" y2="4.75" layer="51"/>
+<rectangle x1="-0.86" y1="3.4" x2="-0.41" y2="4.75" layer="51"/>
+<rectangle x1="-2.13" y1="3.4" x2="-1.68" y2="4.75" layer="51"/>
+<rectangle x1="-3.4" y1="3.4" x2="-2.95" y2="4.75" layer="51"/>
+<rectangle x1="-4.67" y1="3.4" x2="-4.22" y2="4.75" layer="51"/>
+</package>
 <package name="PS2911">
 <smd name="1" x="-0.635" y="-2.45" dx="0.7" dy="0.8" layer="1"/>
 <smd name="2" x="0.635" y="-2.45" dx="0.7" dy="0.8" layer="1"/>
