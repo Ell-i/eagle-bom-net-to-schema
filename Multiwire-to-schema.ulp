@@ -4,46 +4,111 @@ string postamble = "set Warning.PartHasNoUserDefinableValue 1\nwindow fit\ngrid 
 string wires[];
 int nWires;
 
+real dist(UL_PIN p0, UL_PIN p1) {
+    // Pythagoras is our friend
+    real dx = p0.x - p1.x;
+    real dy = p0.y - p1.y;
+    return sqrt(dx * dx + dy * dy);
+}
 
-void draw_net(string net, string part1, string pad1, string part2, string pad2) 
+/* Working set */
+string instances[];
+string pin_names[];
+UL_PIN pins[];
+
+/**
+ * Finds the pins corresponding to a single net
+ *
+ * Input:
+ *  instances[0]..instances[count-1]: Instance names, e.g. "C1"
+ *  pin_names[0]..pin_names[count-1]: Pin names, e.g. "1"
+ * Output:
+ *  pins[0]..pins[count-1]: Pins as found
+ * Returns the number of pins found.
+ */
+int find_pins(int count)
 {
-    int instance_count = 0;
-    UL_INSTANCE instance[];
-    UL_PIN pin[];
+    int found = 0;
     schematic(S) {
         S.sheets(SH) {
             SH.instances(I) {
-                string pad;
-                if (I.name != part1 && I.name != part2) 
-                    continue;
-                if (I.name == part1)
-                    pad = pad1;
-                else
-                    pad = pad2;
-                I.gate.symbol.pins(P) {
-                    P.contacts(C) {
-                        printf("#### %s\n", C.name);
-                        if (C.name == pad) {
-                            pin[instance_count] = P;
-                            break;
+                /* For each instance, check all names in this net */
+                for (int i = 0; i < count; i++) {
+                    if (I.name == instances[i]) {
+                        printf("### Instance %s\n", I.name);
+                        /* Found the instance.  Now find the pin with the corresponding contact name. */
+                        I.gate.symbol.pins(P) {
+                            P.contacts(C) {
+                                if (C.name == pin_names[i]) {
+                                    printf("### Pin %s\n", P.name);
+                                    pins[i] = P;
+                                    found++;
+                                    break;
+                                }
+                            }
                         }
+                        break;
                     }
                 }
-                instance[instance_count++] = I;
+                if (found == count)
+                    /* Found all instances, terminate early */
+                    return count;
             }
-            if (instance_count < 2)
-                return;
         }
     }
-    printf("## %s:%s->%s:%s\n", 
-           instance[0].part.name, pad1,
-           instance[1].part.name, pad2);
-    
-    printf("net '%s'", net);
-    for (int i = 0; i < instance_count; i++) {
-        printf(" (r %f %f)", u2mm(pin[i].x), u2mm(pin[i].y));
+    return found;
+}
+
+/*
+ * Draws a net.
+ *
+ * Starts from the first pin, and always adding the pin that is
+ * closest the any of the ones already included.
+ *
+ * Inputs:
+ *  instances[0]..instances[count-1]: Instance names, e.g. "C1"
+ *  pin_names[0]..pin_names[count-1]: Pin names, e.g. "1"
+ * Outputs:
+ *  Eagle script commands written to the output
+ */
+void draw_net(string net, int count)
+{
+    int found = find_pins(count);
+    if (found < count) {
+        printf("### Couldn't find all parts...skipping\n");
+        return;
     }
-    printf("\n");
+
+    for (int i = 0; i < count; i++) {
+        /*
+          Find the closest pair where
+           - one pin is in the already found, 0...i,
+           - one pin is a new one, i+1...count-1,
+        */
+        UL_PIN p0;
+        UL_PIN p1;
+        real d = REAL_MAX;
+        int k0 = i+1;
+        for (int j = 0; j <= i; j++) {
+            for (int k = i+1; k < count; k++) {
+                real d2 = dist(pins[j], pins[k]);
+                if (d2 < d) {
+                    p0 = pins[j]; p1 = pins[k]; d = d2; k0 = k;
+                }
+            }
+        }
+
+        /* Add the wire */
+        printf("net '%s' (r %f %f) (r %f %f)\n",
+               net,
+               u2mm(p0.x), u2mm(p0.y),
+               u2mm(p1.x), u2mm(p1.y));
+
+        /* Swap the second pin to the found pins area */
+        pins[k0] = pins[i+1];
+        pins[i+1] = p1;
+    }
+
 }
 
 sort(nWires, wires);
@@ -52,22 +117,34 @@ nWires =
     fileread(wires, "/Users/pnr/Documents/eagle/BOM-import/PAHKA-ETH2multiwir.NET.txt");
 
 output("/Users/pnr/Documents/eagle/BOM-import/Elli-proto.net.scr") {
-    string prev[];
+    string prev_net = "";
+    int count = 0, start = 0;
 
     printf("%s", preamble);
     for (int i = 0; i < nWires; i++) {
+        if (wires[i][0] == '#')
+            continue;
         string fields[];
         int num = strsplit(fields, wires[i], '\t');
         if (num != 3)
             continue;
-        if (prev[0] != fields[0]) {
-            /* New net */
-            for (int j = 0; j < 3; j++) {
-                prev[j] = fields[j];
+        if (prev_net != fields[0]) {
+            /* Draw the previous net */
+            printf("## Net %s: start at %d, %d pins\n", prev_net, start, count);
+            if (count > 1) {
+                draw_net(prev_net, count);
             }
-            continue;
+            prev_net = fields[0];
+            count = 0;
+            start = i;
         }
-        //printf("# %s:%s -> %s:%s\n", prev[1], prev[2], fields[1], fields[2]);
-        draw_net(prev[0], prev[1], prev[2], fields[1], fields[2]);
+
+        /* Accumulate parts */
+        instances[count] = fields[1];
+        pin_names[count] = fields[2];
+        count++;
+    }
+    if (count != 0) {
+        draw_net(prev_net, count);
     }
 }
