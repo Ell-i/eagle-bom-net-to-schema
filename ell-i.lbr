@@ -1496,6 +1496,45 @@ Source: www.haloelectronics.com .. e-ultra.pdf</description>
 </device>
 </devices>
 </deviceset>
+<deviceset name="NCP1117" prefix="IC">
+<description>&lt;b&gt;800mA and 1A Low Dropout (LDO) Positive Regulator&lt;/b&gt;&lt;p&gt;
+1.8V, 2.5V, 2.85V, 3.3V, 5V, and Adj</description>
+<gates>
+<gate name="G$1" symbol="REG1117" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SOT223">
+<connects>
+<connect gate="G$1" pin="GND" pad="1"/>
+<connect gate="G$1" pin="VIN" pad="3"/>
+<connect gate="G$1" pin="VOUT" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="MF" value="" constant="no"/>
+<attribute name="MPN" value="REG1117" constant="no"/>
+<attribute name="OC_FARNELL" value="1097566" constant="no"/>
+<attribute name="OC_NEWARK" value="14P6981" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="F" package="DD-3">
+<connects>
+<connect gate="G$1" pin="GND" pad="1"/>
+<connect gate="G$1" pin="VIN" pad="3"/>
+<connect gate="G$1" pin="VOUT" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="MF" value="TEXAS INSTRUMENTS" constant="no"/>
+<attribute name="MPN" value="REG1117FAKTTT" constant="no"/>
+<attribute name="OC_FARNELL" value="1296120" constant="no"/>
+<attribute name="OC_NEWARK" value="87H2562" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
 <deviceset name="PS2911-1" prefix="ISO">
 <gates>
 <gate name="G$1" symbol="OPTOCOUPLER" x="0" y="0"/>
