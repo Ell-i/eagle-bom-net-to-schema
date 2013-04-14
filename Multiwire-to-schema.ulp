@@ -1,10 +1,86 @@
-string preamble = "edit .sch\nset Warning.PartHasNoUserDefinableValue 0\nset wire_bend 2\ngrid mm\nedit .s1\nchange layer 91\nchange style continuous\n";
-string postamble = "set Warning.PartHasNoUserDefinableValue 1\nwindow fit\ngrid last\n";
+/*
+ * An Eagle ULP script to read in a Multiwire NETS list into a <b>schema</b>.
+ *
+ * Copyright (c) 2013 Pekka Nikander <pekka.nikander@iki.fi>
+ * Copying and further modifications freely allowed.  Please contribute back.
+ *
+ * As opposed to most ULP programs available, this program adds NET connections
+ * on the schema instead of a board.  The ULP assumes the following:
+ * - You have schema open
+ * - The schema has all (or most) of the parts referenced in the NETS list
+ * - Each part has PINs in the *symbol* corresponding to the NETS list
+ *
+ * Please note that if in your library the device PADs and symbol contact
+ * PINs do not match with each other, it is quite likely that you will
+ * get wrong connections.
+ */
+
+/**
+ * The multiwire NETS lists.
+ *
+ * Each line should have three TAB delimited fields:
+ *   NET name
+ *   PART name
+ *   PIN name
+ * For example:
+ *   N181770	U2	26
+ *   N181770	R10	1
+ */
+
+string inputFile  = "/Users/pnr/Documents/eagle/BOM-import/PAHKA-ETH2multiwir.NET.txt";
+string outputFile = "/Users/pnr/Documents/eagle/BOM-import/Elli-proto.net.scr";
+
+int Result = dlgDialog("Select Files and Options") {
+    dlgHBoxLayout {
+        dlgLabel("Apply a Multiwire NETS file on the schema");
+        dlgStretch(1);
+    }
+    dlgHBoxLayout {
+        dlgLabel("&Input file &name:");
+        dlgStringEdit(inputFile);
+        dlgPushButton("&Browse") {
+            string newInputFile = dlgFileOpen("Select an Multiwire NETS file", inputFile, "*.NET *.TXT");
+            if (newInputFile != "")
+                inputFile = newInputFile;
+        }
+    }
+    dlgHBoxLayout {
+        dlgLabel("&Output file &name:");
+        dlgStringEdit(outputFile);
+        dlgPushButton("B&rowse") {
+            string newOutputFile = dlgFileSave("Select an Script file", outputFile, "*.SCR");
+            if (newOutputFile != "")
+                inputFile = newOutputFile;
+        }
+    }
+    dlgHBoxLayout {
+        dlgStretch(1);
+        dlgPushButton("+OK")    dlgAccept();
+        dlgPushButton("Cancel") dlgReject();
+    }    
+};
+
+if (Result <= 0)
+    exit(EXIT_FAILURE);
 
 string wires[];
 int nWires;
 
+nWires =
+    fileread(wires, inputFile);
+
+sort(nWires, wires);
+
+/**
+ * Computes the distance between two PINs.
+ *
+ * Returns the distances in units.  If either
+ * of the input pins is NULL, returns REAL_MAX.
+ */
 real dist(UL_PIN p0, UL_PIN p1) {
+    // If either is NULL, return infinite distance
+    if (!p0 || !p1)
+        return REAL_MAX;
     // Pythagoras is our friend
     real dx = p0.x - p1.x;
     real dy = p0.y - p1.y;
@@ -35,19 +111,16 @@ int find_pins(int count)
                 /* For each instance, check all names in this net */
                 for (int i = 0; i < count; i++) {
                     if (I.name == instances[i]) {
-                        printf("### Instance %s\n", I.name);
                         /* Found the instance.  Now find the pin with the corresponding contact name. */
                         I.gate.symbol.pins(P) {
                             P.contacts(C) {
                                 if (C.name == pin_names[i]) {
-                                    printf("### Pin %s\n", P.name);
+                                    printf("#### Pin %s:%s\n", I.name, P.name);
                                     pins[i] = P;
                                     found++;
-                                    break;
                                 }
                             }
                         }
-                        break;
                     }
                 }
                 if (found == count)
@@ -73,10 +146,17 @@ int find_pins(int count)
  */
 void draw_net(string net, int count)
 {
+    /*
+     * Look up all the pins in this network
+     */
     int found = find_pins(count);
     if (found < count) {
-        printf("### Couldn't find all parts...skipping\n");
-        return;
+        /* Report PINs that were not found */
+        for (int i = 0; i < count; i++) {
+            if (!pins[i]) {
+                printf("### Pin %s:%s not found\n", instances[i], pin_names[i]);
+            }
+        }
     }
 
     for (int i = 0; i < count; i++) {
@@ -98,11 +178,13 @@ void draw_net(string net, int count)
             }
         }
 
-        /* Add the wire */
-        printf("net '%s' (r %f %f) (r %f %f)\n",
-               net,
-               u2mm(p0.x), u2mm(p0.y),
-               u2mm(p1.x), u2mm(p1.y));
+        if (d < REAL_MAX) {
+            /* Add the wire */
+            printf("net '%s' (r %f %f) (r %f %f)\n",
+                   net,
+                   u2mm(p0.x), u2mm(p0.y),
+                   u2mm(p1.x), u2mm(p1.y));
+        }
 
         /* Swap the second pin to the found pins area */
         pins[k0] = pins[i+1];
@@ -111,16 +193,14 @@ void draw_net(string net, int count)
 
 }
 
-sort(nWires, wires);
+string pre_amble = "edit .sch\nset Warning.PartHasNoUserDefinableValue 0\nset wire_bend 2\ngrid mm\nedit .s1\nchange layer 91\nchange style continuous\n";
 
-nWires = 
-    fileread(wires, "/Users/pnr/Documents/eagle/BOM-import/PAHKA-ETH2multiwir.NET.txt");
-
-output("/Users/pnr/Documents/eagle/BOM-import/Elli-proto.net.scr") {
+output(outputFile) {
     string prev_net = "";
     int count = 0, start = 0;
 
-    printf("%s", preamble);
+
+    printf("%s", pre_amble);
     for (int i = 0; i < nWires; i++) {
         if (wires[i][0] == '#')
             continue;
