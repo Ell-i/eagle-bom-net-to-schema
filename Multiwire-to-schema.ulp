@@ -193,7 +193,7 @@ void draw_net(string net, int count)
 
 }
 
-string pre_amble = "edit .sch\nset Warning.PartHasNoUserDefinableValue 0\nset wire_bend 2\ngrid mm\nedit .s1\nchange layer 91\nchange style continuous\n";
+string pre_amble = "edit .sch\nset Warning.PartHasNoUserDefinableValue 0\nset wire_bend 2\ngrid mm\nedit .s1\nchange layer 91\nchange style continuous\nset confirm no\n";
 
 output(outputFile) {
     string prev_net = "";
@@ -227,4 +227,6 @@ output(outputFile) {
     if (count != 0) {
         draw_net(prev_net, count);
     }
+
+    printf("%s", "set confirm yes\n");
 }
